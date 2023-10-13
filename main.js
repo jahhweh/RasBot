@@ -33,6 +33,19 @@ const maxRaceMemory = 20;
 const raceMemory = [];
 const prefix = '!';
 
+// setup Kingston, Jamaica date and time
+const jamaicaTimezone = 'America/Jamaica';
+const timezoneOptions = {
+  timeZone: jamaicaTimezone,
+  hour12: true,
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+};
+const jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
+
 // start chatbot
 client.once('ready', async () => {
   client.user.setActivity("strictly roots", { type: "PLAYING" })
@@ -162,7 +175,7 @@ client.on('messageCreate', message => {
         })();
         break;
 
-      // turtle race
+
       // turtle race
       case 'race':
 
@@ -178,7 +191,7 @@ client.on('messageCreate', message => {
         let lastMessage = null;
         let lastUpdate = null;
 
-        const names = ['Rocky', 'Shellman', 'Speedy', 'Bolt', 'Flash', 'Turbo', 'Rocket', 'Zoom', 'Blaze', 'Jet', 'Comet', 'Lightning', 'Rapido', 'Viento', 'Fugaz', 'Cósmico', 'Relâmpago', 'Raio', 'Contella', 'Torbellino', 'Águila', 'Faísca', 'Umi', 'Tora', 'Kaze', 'Hikari', 'Xingyun', 'Lóng', 'Zephyr', 'Qilin', 'Drakon', 'Vitez', 'Singa', 'Selamat', 'Lao', 'Raja'];
+        const names = ['Rocky', 'Shellman', 'Speedy', 'Bolt', 'Flash', 'Turbo', 'Rocket', 'Zoom', 'Blaze', 'Jet', 'Comet', 'Lightning', 'Rapido', 'Viento', 'Fugaz', 'Cósmico', 'Relâmpago', 'Raio', 'Contella', 'Torbellino', 'Águila', 'Faísca', 'Umi', 'Tora', 'Kaze', 'Hikari', 'Xingyun', 'Lóng', 'Zephyr', 'Qilin', 'Drakon', 'Vitez', 'Singa', 'Selamat', 'Lao', 'Raja', 'Bob', 'Rita', 'Ziggy', 'Rohan', 'Cedella', 'Ky-Mani', 'Ruffy', 'Tuffy', 'Lickle Gong', 'Sela', 'Toaster', 'Sleng Teng', 'Bandelero', 'Duppy', 'Diwali', 'Rudy', 'Rizzla', 'Chaliwa'];
         const emojis = ['🟥', '🟦', '🟩', '🟨', '🟪', '🟫', '🟧', '⬛', '⬜'];
 
         // Shuffle array
@@ -307,7 +320,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           })();
         }
 
-        message.channel.send(`🐢 Turtle race #${raceNumber} has begun!`);
+        message.channel.send(`🐢 It's ${jamaicaDate} in Kingston, Jamaica and Turtle Race #${raceNumber} is about to begun!`);
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
@@ -360,4 +373,5 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
   }
 
 });
+
 client.login(process.env.DISCORD_BOT_TOKEN);
