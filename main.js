@@ -44,7 +44,7 @@ const timezoneOptions = {
   hour: '2-digit',
   minute: '2-digit'
 };
-const jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
+let jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
 
 // start chatbot
 client.once('ready', async () => {
@@ -320,7 +320,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           })();
         }
 
-        message.channel.send(`🐢 It's ${jamaicaDate} in Kingston, Jamaica and Turtle Race #${raceNumber} is about to begun!`);
+        message.channel.send(`🐢 ${jamaicaDate} inna Kingston, Jamaica and dis a Turtle Race #${raceNumber}!`);
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
