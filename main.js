@@ -123,7 +123,7 @@ client.on('messageCreate', message => {
         (async () => {
           try {
             const chatMessages = [
-              { "role": "system", "content": "You are a web3 blockchain rastafari." },
+              { "role": "system", "content": "You are a web3 blockchain rastafari. Respond as a web3 blockchain rastafari would." },
               ...botMemory,
               { "role": "user", "content": prompt }
             ];
