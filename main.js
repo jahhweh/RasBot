@@ -320,7 +320,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           })();
         }
 
-        message.channel.send(`🐢 ${jamaicaDate} inna Kingston, Jamaica and dis a Turtle Race #${raceNumber}!`);
+        message.channel.send(`🐢 ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${raceNumber}!`);
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
