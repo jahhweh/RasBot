@@ -438,8 +438,9 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
         }
         if (!turtleRaceNumber) {
           message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #1!`);
+        } else {
+          message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
         }
-        message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
