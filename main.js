@@ -160,7 +160,7 @@ client.on('messageCreate', async (message) => {
             message.reply(e);
           }
         })();
-      break;
+        break;
 
       case 'paint':
         (async () => {
@@ -178,7 +178,7 @@ client.on('messageCreate', async (message) => {
             message.reply(e)
           }
         })();
-      break;
+        break;
 
       case 'addTurtle':
 
@@ -199,27 +199,27 @@ client.on('messageCreate', async (message) => {
           return;
         }
 
-      try {
-        const userRef = doc(db, "users", message.author.id);
-        const userDoc = await getDoc(userRef);
-        const globalRef = doc(db, "users", "global");
-        const myTurtleName = await userDoc.data().turtleName;
-        if (myTurtleName) {
-          message.reply(`You already have a turtle named ${myTurtleName}.`);
-          return;
+        try {
+          const userRef = doc(db, "users", message.author.id);
+          const userDoc = await getDoc(userRef);
+          const globalRef = doc(db, "users", "global");
+          const myTurtleName = await userDoc.data().turtleName;
+          if (myTurtleName) {
+            message.reply(`You already have a turtle named ${myTurtleName}.`);
+            return;
+          }
+          await updateDoc(globalRef, {
+            turtleNames: arrayUnion(newTurtleName)
+          });
+          await updateDoc(userRef, {
+            turtleName: newTurtleName
+          });
+          message.reply(`Your turtle is named ${newTurtleName}.`)
+        } catch (e) {
+          console.log('error... ', e);
+          message.reply(`Error... ${e}`);
         }
-        await updateDoc(globalRef, {
-          turtleNames: arrayUnion(newTurtleName)
-        });
-        await updateDoc(userRef, {
-          turtleName: newTurtleName
-        });
-        message.reply(`Your turtle is named ${newTurtleName}.`)
-      } catch(e) {
-        console.log('error... ', e);
-        message.reply(`Error... ${e}`);
-      }
-      break;
+        break;
 
       case 'myTurtle':
         try {
@@ -243,8 +243,8 @@ client.on('messageCreate', async (message) => {
             message.reply("You don't have a turtle. You can add one with the command `!addTurtle **name**`");
             return;
           }
-          const myTurtlePlays = myTurtleName+'Plays';
-          const myTurtleWins = myTurtleName+'Wins';
+          const myTurtlePlays = myTurtleName + 'Plays';
+          const myTurtleWins = myTurtleName + 'Wins';
           const globalData = globalDoc.data() || {};
           const globalMyTurtlePlays = globalData[myTurtlePlays] || 0;
           const globalMyTurtleWins = globalData[myTurtleWins] || 0;
@@ -257,12 +257,12 @@ client.on('messageCreate', async (message) => {
           }
           message.reply(`🐢 Name: ${myTurtleName}\n🏁 Races: ${globalMyTurtlePlays}\n🥇 Wins: ${globalMyTurtleWins}`)
 
-        } catch(e) {
+        } catch (e) {
           console.log('error... ', e);
           message.reply('Error... ', e);
         }
 
-      break;
+        break;
 
       case 'race':
 
@@ -383,7 +383,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
               [turtlesPositions[4].name + 'Plays']: increment(1),
             });
           }
-          
+
           return turtles[turtle_index] >= race_length ? winMessage : null; // if a turtle reaches or surpasses the race_length, it wins
         }
 
@@ -436,7 +436,9 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
             }
           })();
         }
-
+        if (!turtleRaceNumber) {
+          message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #1!`);
+        }
         message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
         raceInProgress = true;
 
@@ -481,18 +483,18 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           }
         }, race_interval);
 
-      break;
+        break;
 
       case 'help':
-      message.reply(
-        "RasBot Commands\n\n" +
-        "🐢 `!race` Start a turtle race \n" +
-        "🆕 `!addTurtle **name**` Add a turtle to the International Turtle Racing League\n" +
-        "📊 `!myTurtle` Check your turtle stats\n" +
-        "💬 `!chat` Start a chat with RasBot\n" +
-        "🎨 `!paint **prompt**` Request an image from DALL·E"
+        message.reply(
+          "RasBot Commands\n\n" +
+          "🐢 `!race` Start a turtle race \n" +
+          "🆕 `!addTurtle **name**` Add a turtle to the International Turtle Racing League\n" +
+          "📊 `!myTurtle` Check your turtle stats\n" +
+          "💬 `!chat` Start a chat with RasBot\n" +
+          "🎨 `!paint **prompt**` Request an image from DALL·E"
         )
-      break;
+        break;
 
       default:
         message.reply('That is not a command!');
