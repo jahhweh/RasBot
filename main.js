@@ -404,7 +404,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           (async () => {
             try {
               const chatMessages = [
-                { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a National Turtle Racing League sports commentator." },
+                { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a International Turtle Racing League sports commentator." },
                 ...raceMemory,
                 { "role": "user", "content": instructions }
               ];
@@ -453,7 +453,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
             (async () => {
               try {
                 const chatMessages = [
-                  { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a National Turtle Racing League sports commentator." },
+                  { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a International Turtle Racing League sports commentator." },
                   ...raceMemory,
                   { "role": "user", "content": finalMessage }
                 ];
