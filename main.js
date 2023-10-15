@@ -1,16 +1,36 @@
 // RasBot 
 // An OpenAI Discord Bot
-//
-// !rasbot to chat
-// !paint to request a painting
-// !race to start a turtle race
 
-require('dotenv').config();
-const { Configuration, OpenAIApi } = require("openai");
-const Discord = require('discord.js');
+import * as dotenv from 'dotenv';
+import { OpenAI } from 'openai';
+import { Client } from 'discord.js';
+import { initializeApp } from 'firebase/app';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  increment,
+  arrayUnion
+} from 'firebase/firestore';
+import Moralis from 'moralis';
 
-// connect to discord
-const client = new Discord.Client({
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+dotenv.config();
+const client = new Client({
   intents: [
     "GUILDS",
     "GUILD_MESSAGES",
@@ -18,11 +38,13 @@ const client = new Discord.Client({
   ],
 });
 
-// connect to OpenAI 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
+
+Moralis.start({
+  apiKey: process.env.MORALIS_API_KEY,
+});
 
 // setup chatbot variables
 const maxMemory = 2;
@@ -46,59 +68,50 @@ const timezoneOptions = {
 };
 let jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
 
+// setup discord server settings
+const botChannel = '1162474159687868526';
+
 // start chatbot
 client.once('ready', async () => {
   client.user.setActivity("strictly roots", { type: "PLAYING" })
-  console.log('Bot is online');
 });
 
 // on message...
-client.on('messageCreate', message => {
+client.on('messageCreate', async (message) => {
 
+  if (!message.channel.id == botChannel) return;
   // reply to a message if bot is being replied to
   if (message.reference && message.reference.messageId) {
-
     message.channel.messages.fetch(message.reference.messageId)
       .then(msg => {
         if (msg.author.id === client.user.id) {
-
-          // Reply to the message
-          // set chatbot prompt as discord message
           let prompt = message.content;
-
-          // generate response
+          console.log(prompt);
           (async () => {
             try {
               const chatMessages = [
-                { "role": "system", "content": "You are a web3 blockchain rastafari." },
+                { "role": "system", "content": "You are a web3 blockchain rastafari. Respond as a web3 blockchain rastafari would." },
                 ...botMemory,
                 { "role": "user", "content": prompt }
               ];
-
-              const completion = await openai.createChatCompletion({
+              const completion = await openai.chat.completions.create({
                 model: "gpt-4",
                 messages: chatMessages,
-                temperature: 1.1,
-                max_tokens: 200,
+                temperature: 0.5,
+                max_tokens: 500,
                 presence_penalty: 0.5,
                 frequency_penalty: 0.2
               });
-
-              const response = completion.data.choices[0].message.content;
-
+              const response = completion.choices[0].message.content;
               message.reply(response);
               if (botMemory.length >= maxMemory * 2) {
                 botMemory.splice(0, 2);
               }
               botMemory.push({ "role": "user", "content": prompt });
               botMemory.push({ "role": "assistant", "content": response });
-
-              console.log('PROMPT: ', prompt);
-              console.log('RESPONSE: ', response);
-              console.log('BOT MEMORY: ', botMemory);
             } catch (e) {
               console.log('error: ', e);
-              message.reply('bad vibes!');
+              message.reply('error...');
               message.reply(e);
             }
           })();
@@ -115,74 +128,168 @@ client.on('messageCreate', message => {
       .split(/\s+/);
 
     switch (command) {
-      case 'rasbot':
-        // set chatbot prompt as discord message
-        let prompt = message.content;
 
-        // generate response
+      case 'chat':
+        let chatPrompt = message.content.replace("!chat ", " ");
+        console.log(chatPrompt);
         (async () => {
           try {
             const chatMessages = [
               { "role": "system", "content": "You are a web3 blockchain rastafari. Respond as a web3 blockchain rastafari would." },
               ...botMemory,
-              { "role": "user", "content": prompt }
+              { "role": "user", "content": chatPrompt }
             ];
-
-            const completion = await openai.createChatCompletion({
+            const completion = await openai.chat.completions.create({
               model: "gpt-4",
               messages: chatMessages,
-              temperature: 1.1,
+              temperature: 0.5,
               max_tokens: 500,
               presence_penalty: 0.5,
               frequency_penalty: 0.2
             });
-
-            const response = completion.data.choices[0].message.content;
-
+            const response = completion.choices[0].message.content;
             message.reply(response);
             if (botMemory.length >= maxMemory * 2) {
               botMemory.splice(0, 2);
             }
-            botMemory.push({ "role": "user", "content": prompt });
+            botMemory.push({ "role": "user", "content": chatPrompt });
             botMemory.push({ "role": "assistant", "content": response });
-
-            console.log('PROMPT: ', prompt);
-            console.log('RESPONSE: ', response);
-            console.log('BOT MEMORY: ', botMemory);
           } catch (e) {
             console.log('error: ', e);
-            message.reply('bad vibes!');
+            message.reply('error...');
             message.reply(e);
           }
         })();
-        break;
+      break;
 
       case 'paint':
         (async () => {
           message.reply(`Painting ${message.content.slice(message.content.indexOf('!paint') + 7)}...`);
           try {
-            const response = await openai.createImage({
-              prompt: `A painting of ${message.content.slice(message.content.indexOf('!paint') + 7)} in the style of a Caribbean artist`,
+            const response = await openai.images.generate({
+              prompt: `A painting of ${message.content.slice(message.content.indexOf('!paint') + 7)}`,
               n: 1,
               size: "256x256",
             });
-            message.channel.send(response.data.data[0].url);
+            message.channel.send(response.data[0].url);
           } catch (e) {
             console.log('error: ', e);
-            message.reply('bad vibes!');
-            message.reply(e);
+            message.reply('error...');
+            message.reply(e)
           }
         })();
-        break;
+      break;
 
+      case 'addTurtle':
 
-      // turtle race
+        const newTurtleName = message.content.slice(message.content.indexOf('!addTurtle') + 11).replace(/[*]/g, '');
+
+        if (newTurtleName.length <= 2 || newTurtleName.length >= 12) {
+          message.reply("Turtle names must be between 2 and 12 characters. `!addTurtle Name`");
+          return;
+        }
+
+        const modCheck = openai.moderations.create({
+          model: 'text-moderation-latest',
+          input: newTurtleName
+        })
+        const banHammer = (await modCheck).results[0].flagged;
+        if (banHammer) {
+          message.reply("That name was flagged by the moderators. Please choose a different name.");
+          return;
+        }
+
+      try {
+        const userRef = doc(db, "users", message.author.id);
+        const userDoc = await getDoc(userRef);
+        const globalRef = doc(db, "users", "global");
+        const myTurtleName = await userDoc.data().turtleName;
+        if (myTurtleName) {
+          message.reply(`You already have a turtle named ${myTurtleName}.`);
+          return;
+        }
+        await updateDoc(globalRef, {
+          turtleNames: arrayUnion(newTurtleName)
+        });
+        await updateDoc(userRef, {
+          turtleName: newTurtleName
+        });
+        message.reply(`Your turtle is named ${newTurtleName}.`)
+      } catch(e) {
+        console.log('error... ', e);
+        message.reply(`Error... ${e}`);
+      }
+      break;
+
+      case 'myTurtle':
+        try {
+          const globalRef = doc(db, "users", "global");
+          const globalDoc = await getDoc(globalRef);
+          const userRef = doc(db, "users", message.author.id);
+          const userDoc = await getDoc(userRef);
+
+          if (!userDoc.exists()) {
+            const timestamp = Math.floor(Date.now()).toString();
+            await setDoc(userRef, {
+              username: message.author.username,
+              signUpTimestamp: timestamp,
+            });
+            message.reply("You don't have a turtle. You can add one with the command `!addTurtle **name**`");
+            return;
+          }
+
+          const myTurtleName = await userDoc.data().turtleName;
+          if (!myTurtleName) {
+            message.reply("You don't have a turtle. You can add one with the command `!addTurtle **name**`");
+            return;
+          }
+          const myTurtlePlays = myTurtleName+'Plays';
+          const myTurtleWins = myTurtleName+'Wins';
+          const globalData = globalDoc.data() || {};
+          const globalMyTurtlePlays = globalData[myTurtlePlays] || 0;
+          const globalMyTurtleWins = globalData[myTurtleWins] || 0;
+
+          if (globalMyTurtlePlays == undefined) {
+            globalMyTurtlePlays = 0;
+          }
+          if (globalMyTurtleWins == undefined) {
+            globalMyTurtleWins = 0;
+          }
+          message.reply(`🐢 Name: ${myTurtleName}\n🏁 Races: ${globalMyTurtlePlays}\n🥇 Wins: ${globalMyTurtleWins}`)
+
+        } catch(e) {
+          console.log('error... ', e);
+          message.reply('Error... ', e);
+        }
+
+      break;
+
       case 'race':
+
+        const globalRef = doc(db, "users", "global");
+        const globalDoc = await getDoc(globalRef);
+        const userRef = doc(db, "users", message.author.id);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          const timestamp = Math.floor(Date.now()).toString();
+          await setDoc(userRef, {
+            username: message.author.username,
+            signUpTimestamp: timestamp,
+          });
+        }
 
         if (raceInProgress) {
           message.channel.send("Turtles are already racing on the track!");
           return;
         }
+
+        const turtleNamesArray = globalDoc.data().turtleNames;
+        const turtleRaceNumber = globalDoc.data().totalTurtleRaces;
+
+        await updateDoc(globalRef, {
+          totalTurtleRaces: increment(1)
+        });
 
         const turtle_count = 5;
         const race_length = 100;
@@ -191,7 +298,6 @@ client.on('messageCreate', message => {
         let lastMessage = null;
         let lastUpdate = null;
 
-        const names = ['Rocky', 'Shellman', 'Speedy', 'Bolt', 'Flash', 'Turbo', 'Rocket', 'Zoom', 'Blaze', 'Jet', 'Comet', 'Lightning', 'Rapido', 'Viento', 'Fugaz', 'Cósmico', 'Relâmpago', 'Raio', 'Contella', 'Torbellino', 'Águila', 'Faísca', 'Umi', 'Tora', 'Kaze', 'Hikari', 'Xingyun', 'Lóng', 'Zephyr', 'Qilin', 'Drakon', 'Vitez', 'Singa', 'Selamat', 'Lao', 'Raja', 'Bob', 'Rita', 'Ziggy', 'Rohan', 'Cedella', 'Ky-Mani', 'Ruffy', 'Tuffy', 'Lickle Gong', 'Sela', 'Toaster', 'Sleng Teng', 'Bandelero', 'Duppy', 'Diwali', 'Rudy', 'Rizzla', 'Chaliwa'];
         const emojis = ['🟥', '🟦', '🟩', '🟨', '🟪', '🟫', '🟧', '⬛', '⬜'];
 
         // Shuffle array
@@ -203,9 +309,9 @@ client.on('messageCreate', message => {
         }
 
         // Randomly select and shuffle names
-        shuffleArray(names);
-        shuffleArray(emojis)
-        const randomNames = names.slice(0, turtle_count);
+        shuffleArray(turtleNamesArray);
+        shuffleArray(emojis);
+        const randomNames = turtleNamesArray.slice(0, turtle_count);
         const randomEmojis = emojis.slice(0, turtle_count);
 
         let turtles = Array(turtle_count).fill(0);
@@ -267,6 +373,17 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
 
           turtlesPositions.sort((a, b) => b.pos - a.pos);
           let winMessage = `🍾 We have a winner! 🎉\n🐢 Turtle Race #${raceNumber}\n🥇 ${turtlesPositions[0].name}\n🥈 ${turtlesPositions[1].name}\n🥉 ${turtlesPositions[2].name}\n😰 ${turtlesPositions[3].name}\n😴 ${turtlesPositions[4].name}`
+          if (turtles[turtle_index] >= race_length) {
+            updateDoc(globalRef, {
+              [turtlesPositions[0].name + 'Wins']: increment(1),
+              [turtlesPositions[0].name + 'Plays']: increment(1),
+              [turtlesPositions[1].name + 'Plays']: increment(1),
+              [turtlesPositions[2].name + 'Plays']: increment(1),
+              [turtlesPositions[3].name + 'Plays']: increment(1),
+              [turtlesPositions[4].name + 'Plays']: increment(1),
+            });
+          }
+          
           return turtles[turtle_index] >= race_length ? winMessage : null; // if a turtle reaches or surpasses the race_length, it wins
         }
 
@@ -291,7 +408,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
                 ...raceMemory,
                 { "role": "user", "content": instructions }
               ];
-              const completion = await openai.createChatCompletion({
+              const completion = await openai.chat.completions.create({
                 model: "gpt-4",
                 messages: chatMessages,
                 temperature: 1.1,
@@ -299,7 +416,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
                 presence_penalty: 0.5,
                 frequency_penalty: 0.2
               });
-              const response = completion.data.choices[0].message.content;
+              const response = completion.choices[0].message.content;
 
               if (lastUpdate) {
                 lastUpdate.edit(`🎙️ ${response}`);
@@ -320,7 +437,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           })();
         }
 
-        message.channel.send(`🐢 ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${raceNumber}!`);
+        message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
@@ -337,7 +454,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
                   ...raceMemory,
                   { "role": "user", "content": finalMessage }
                 ];
-                const completion = await openai.createChatCompletion({
+                const completion = await openai.chat.completions.create({
                   model: "gpt-4",
                   messages: chatMessages,
                   temperature: 1.1,
@@ -345,7 +462,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
                   presence_penalty: 0.5,
                   frequency_penalty: 0.2
                 });
-                const response = completion.data.choices[0].message.content;
+                const response = completion.choices[0].message.content;
 
                 if (lastUpdate) {
                   lastUpdate.edit(`🎙️ ${response}`);
@@ -364,7 +481,18 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           }
         }, race_interval);
 
-        break;
+      break;
+
+      case 'help':
+      message.reply(
+        "RasBot Commands\n\n" +
+        "🐢 `!race` Start a turtle race \n" +
+        "🆕 `!addTurtle **name**` Add a turtle to the International Turtle Racing League\n" +
+        "📊 `!myTurtle` Check your turtle stats\n" +
+        "💬 `!chat` Start a chat with RasBot\n" +
+        "🎨 `!paint **prompt**` Request an image from DALL·E"
+        )
+      break;
 
       default:
         message.reply('That is not a command!');
