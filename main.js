@@ -71,10 +71,18 @@ client.on('messageCreate', async (message) => {
   // reply to a message if bot is being replied to
   if (message.reference && message.reference.messageId) {
     message.channel.messages.fetch(message.reference.messageId)
-      .then(msg => {
+      .then(async msg => {
         if (msg.author.id === client.user.id) {
           let prompt = message.content;
-          console.log(prompt);
+          const modCheck = openai.moderations.create({
+            model: 'text-moderation-latest',
+            input: prompt
+          })
+          const banHammer = (await modCheck).results[0].flagged;
+          if (banHammer) {
+            message.reply("That was flagged by the moderators. Please !chat about something else.");
+            return;
+          }
           (async () => {
             try {
               const chatMessages = [
@@ -118,54 +126,87 @@ client.on('messageCreate', async (message) => {
     switch (command) {
 
       case 'chat':
-        let chatPrompt = message.content.replace("!chat ", " ");
-        console.log(chatPrompt);
-        (async () => {
-          try {
-            const chatMessages = [
-              { "role": "system", "content": "You are a web3 blockchain rastafari. Respond as a web3 blockchain rastafari would." },
-              ...botMemory,
-              { "role": "user", "content": chatPrompt }
-            ];
-            const completion = await openai.chat.completions.create({
-              model: "gpt-4",
-              messages: chatMessages,
-              temperature: 0.5,
-              max_tokens: 500,
-              presence_penalty: 0.5,
-              frequency_penalty: 0.2
-            });
-            const response = completion.choices[0].message.content;
-            message.reply(response);
-            if (botMemory.length >= maxMemory * 2) {
-              botMemory.splice(0, 2);
-            }
-            botMemory.push({ "role": "user", "content": chatPrompt });
-            botMemory.push({ "role": "assistant", "content": response });
-          } catch (e) {
-            console.log('error: ', e);
-            message.reply('error...');
-            message.reply(e);
+        try {
+          let chatPrompt = message.content.replace("!chat ", " ");
+          const modCheck = openai.moderations.create({
+            model: 'text-moderation-latest',
+            input: chatPrompt
+          })
+          const banHammer = (await modCheck).results[0].flagged;
+          if (banHammer) {
+            message.reply("That was flagged by the moderators. Please !chat about something else.");
+            return;
           }
-        })();
+          (async () => {
+            try {
+              const chatMessages = [
+                { "role": "system", "content": "You are a web3 blockchain rastafari. Respond as a web3 blockchain rastafari would." },
+                ...botMemory,
+                { "role": "user", "content": chatPrompt }
+              ];
+              const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: chatMessages,
+                temperature: 0.5,
+                max_tokens: 500,
+                presence_penalty: 0.5,
+                frequency_penalty: 0.2
+              });
+              const response = completion.choices[0].message.content;
+              message.reply(response);
+              if (botMemory.length >= maxMemory * 2) {
+                botMemory.splice(0, 2);
+              }
+              botMemory.push({ "role": "user", "content": chatPrompt });
+              botMemory.push({ "role": "assistant", "content": response });
+            } catch (e) {
+              console.log('error: ', e);
+              message.reply('error...');
+              message.reply(e);
+            }
+          })();
+        } catch(e) {
+          console.log('Error... ', e);
+          message.reply(`Error... ${e}`);
+        }
+       
         break;
 
       case 'paint':
-        (async () => {
-          message.reply(`Painting ${message.content.slice(message.content.indexOf('!paint') + 7)}...`);
-          try {
-            const response = await openai.images.generate({
-              prompt: `A painting of ${message.content.slice(message.content.indexOf('!paint') + 7)}`,
-              n: 1,
-              size: "256x256",
-            });
-            message.channel.send(response.data[0].url);
-          } catch (e) {
-            console.log('error: ', e);
-            message.reply('error...');
-            message.reply(e)
+
+        try {
+          const userRequest = message.content.slice(message.content.indexOf('!paint') + 7);
+          const modCheck = openai.moderations.create({
+            model: 'text-moderation-latest',
+            input: userRequest
+          })
+          const banHammer = (await modCheck).results[0].flagged;
+          if (banHammer) {
+            message.reply("That was flagged by the moderators. Please !paint something else.");
+            return;
           }
-        })();
+
+          (async () => {
+            message.reply(`Painting ${message.content.slice(message.content.indexOf('!paint') + 7)}...`);
+            try {
+              const response = await openai.images.generate({
+                prompt: `A painting of ${message.content.slice(message.content.indexOf('!paint') + 7)}`,
+                n: 1,
+                size: "256x256",
+              });
+              message.channel.send(response.data[0].url);
+            } catch (e) {
+              console.log('error: ', e);
+              message.reply('error...');
+              message.reply(e)
+            }
+          })();
+
+        } catch (e) {
+          console.log('Error... ', e);
+          message.reply(`Error... ${e}`);
+        }
+
         break;
 
       case 'addTurtle':
