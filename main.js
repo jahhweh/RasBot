@@ -410,7 +410,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
               const completion = await openai.chat.completions.create({
                 model: "gpt-4",
                 messages: chatMessages,
-                temperature: 1.1,
+                temperature: 0.9,
                 max_tokens: 500,
                 presence_penalty: 0.5,
                 frequency_penalty: 0.2
@@ -460,7 +460,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
                 const completion = await openai.chat.completions.create({
                   model: "gpt-4",
                   messages: chatMessages,
-                  temperature: 1.1,
+                  temperature: 0.9,
                   max_tokens: 500,
                   presence_penalty: 0.5,
                   frequency_penalty: 0.2
