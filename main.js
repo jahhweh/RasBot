@@ -65,7 +65,9 @@ client.once('ready', async () => {
 // on message...
 client.on('messageCreate', async (message) => {
 
+  // if message is not in bot channel, ignore it
   if (!message.channel.id == botChannel) return;
+
   // reply to a message if bot is being replied to
   if (message.reference && message.reference.messageId) {
     message.channel.messages.fetch(message.reference.messageId)
@@ -166,7 +168,7 @@ client.on('messageCreate', async (message) => {
         })();
         break;
 
-        case 'addTurtle':
+      case 'addTurtle':
 
         const newTurtleName = message.content.slice(message.content.indexOf('!addTurtle') + 11).replace(/[*]/g, '');
 
@@ -185,32 +187,32 @@ client.on('messageCreate', async (message) => {
           return;
         }
 
-      try {
-        const userRef = doc(db, "users", message.author.id);
-        const userDoc = await getDoc(userRef);
-        const globalRef = doc(db, "users", "global");
-        const myTurtleName = await userDoc.data().turtleName;
-        if (myTurtleName) {
-          message.reply(`You already have a turtle named ${myTurtleName}.`);
-          return;
-        }
-        await updateDoc(globalRef, {
-          turtleNames: arrayUnion(newTurtleName),
-          [newTurtleName]: {
-            owner: message.author.username,
-            plays: 0,
-            wins: 0
+        try {
+          const userRef = doc(db, "users", message.author.id);
+          const userDoc = await getDoc(userRef);
+          const globalRef = doc(db, "users", "global");
+          const myTurtleName = await userDoc.data().turtleName;
+          if (myTurtleName) {
+            message.reply(`You already have a turtle named ${myTurtleName}.`);
+            return;
           }
-        });
-        await updateDoc(userRef, {
-          turtleName: newTurtleName
-        });
-        message.reply(`Your turtle is named ${newTurtleName}.`)
-      } catch(e) {
-        console.log('error... ', e);
-        message.reply(`Error... ${e}`);
-      }
-      break;
+          await updateDoc(globalRef, {
+            turtleNames: arrayUnion(newTurtleName),
+            [newTurtleName]: {
+              owner: message.author.username,
+              plays: 0,
+              wins: 0
+            }
+          });
+          await updateDoc(userRef, {
+            turtleName: newTurtleName
+          });
+          message.reply(`Your turtle is named ${newTurtleName}.`)
+        } catch (e) {
+          console.log('error... ', e);
+          message.reply(`Error... ${e}`);
+        }
+        break;
 
       case 'myTurtle':
         try {
@@ -237,19 +239,19 @@ client.on('messageCreate', async (message) => {
 
           const globalData = globalDoc.data();
           console.log(globalData[myTurtleName])
-      
+
           const owner = globalData[myTurtleName].owner;
           const plays = globalData[myTurtleName].plays;
           const wins = globalData[myTurtleName].wins;
 
           message.reply(`🐢 Name: ${myTurtleName}\n ❤️ Owner: ${owner}\n 🏁 Races: ${plays}\n 🥇 Wins: ${wins}`)
 
-        } catch(e) {
+        } catch (e) {
           console.log('error... ', e);
           message.reply('Error... ', e);
         }
 
-      break;
+        break;
 
       case 'race':
         // setup Kingston, Jamaica date and time
@@ -264,7 +266,7 @@ client.on('messageCreate', async (message) => {
           minute: '2-digit'
         };
         let jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
-        
+
         const globalRef = doc(db, "users", "global");
         const globalDoc = await getDoc(globalRef);
         const userRef = doc(db, "users", message.author.id);
@@ -437,7 +439,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #1!`);
         } else {
           message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
-        }        
+        }
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
@@ -481,7 +483,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           }
         }, race_interval);
 
-      break;
+        break;
 
       case 'help':
         message.reply(
