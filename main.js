@@ -49,7 +49,6 @@ Moralis.start({
 // setup chatbot variables
 const maxMemory = 2;
 const botMemory = [];
-let raceNumber = 0;
 let raceInProgress = false;
 const maxRaceMemory = 20;
 const raceMemory = [];
@@ -294,7 +293,6 @@ client.on('messageCreate', async (message) => {
         const turtle_count = 5;
         const race_length = 100;
         const race_interval = 1000;
-        raceNumber++;
         let lastMessage = null;
         let lastUpdate = null;
 
@@ -372,7 +370,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           }
 
           turtlesPositions.sort((a, b) => b.pos - a.pos);
-          let winMessage = `🍾 We have a winner! 🎉\n🐢 Turtle Race #${raceNumber}\n🥇 ${turtlesPositions[0].name}\n🥈 ${turtlesPositions[1].name}\n🥉 ${turtlesPositions[2].name}\n😰 ${turtlesPositions[3].name}\n😴 ${turtlesPositions[4].name}`
+          let winMessage = `🍾 We have a winner! 🎉\n🐢 Turtle Race #${turtleRaceNumber + 1}\n🥇 ${turtlesPositions[0].name}\n🥈 ${turtlesPositions[1].name}\n🥉 ${turtlesPositions[2].name}\n😰 ${turtlesPositions[3].name}\n😴 ${turtlesPositions[4].name}`
           if (turtles[turtle_index] >= race_length) {
             const updates = {};
             updates[`${turtlesPositions[0].name}.wins`] = increment(1);
