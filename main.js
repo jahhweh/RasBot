@@ -180,7 +180,7 @@ client.on('messageCreate', async (message) => {
         })();
         break;
 
-      case 'addTurtle':
+        case 'addTurtle':
 
         const newTurtleName = message.content.slice(message.content.indexOf('!addTurtle') + 11).replace(/[*]/g, '');
 
@@ -199,32 +199,38 @@ client.on('messageCreate', async (message) => {
           return;
         }
 
-        try {
-          const userRef = doc(db, "users", message.author.id);
-          const userDoc = await getDoc(userRef);
-          const globalRef = doc(db, "users", "global");
-          const myTurtleName = await userDoc.data().turtleName;
-          if (myTurtleName) {
-            message.reply(`You already have a turtle named ${myTurtleName}.`);
-            return;
-          }
-          await updateDoc(globalRef, {
-            turtleNames: arrayUnion(newTurtleName)
-          });
-          await updateDoc(userRef, {
-            turtleName: newTurtleName
-          });
-          message.reply(`Your turtle is named ${newTurtleName}.`)
-        } catch (e) {
-          console.log('error... ', e);
-          message.reply(`Error... ${e}`);
+      try {
+        const userRef = doc(db, "users", message.author.id);
+        const userDoc = await getDoc(userRef);
+        const globalRef = doc(db, "users", "global");
+        const myTurtleName = await userDoc.data().turtleName;
+        if (myTurtleName) {
+          message.reply(`You already have a turtle named ${myTurtleName}.`);
+          return;
         }
-        break;
+        await updateDoc(globalRef, {
+          turtleNames: arrayUnion(newTurtleName),
+          [newTurtleName]: {
+            owner: message.author.username,
+            plays: 0,
+            wins: 0
+          }
+        });
+        await updateDoc(userRef, {
+          turtleName: newTurtleName
+        });
+        message.reply(`Your turtle is named ${newTurtleName}.`)
+      } catch(e) {
+        console.log('error... ', e);
+        message.reply(`Error... ${e}`);
+      }
+      break;
 
       case 'myTurtle':
         try {
           const globalRef = doc(db, "users", "global");
           const globalDoc = await getDoc(globalRef);
+
           const userRef = doc(db, "users", message.author.id);
           const userDoc = await getDoc(userRef);
 
@@ -237,32 +243,27 @@ client.on('messageCreate', async (message) => {
             message.reply("You don't have a turtle. You can add one with the command `!addTurtle **name**`");
             return;
           }
-
           const myTurtleName = await userDoc.data().turtleName;
           if (!myTurtleName) {
             message.reply("You don't have a turtle. You can add one with the command `!addTurtle **name**`");
             return;
           }
-          const myTurtlePlays = myTurtleName + 'Plays';
-          const myTurtleWins = myTurtleName + 'Wins';
-          const globalData = globalDoc.data() || {};
-          const globalMyTurtlePlays = globalData[myTurtlePlays] || 0;
-          const globalMyTurtleWins = globalData[myTurtleWins] || 0;
 
-          if (globalMyTurtlePlays == undefined) {
-            globalMyTurtlePlays = 0;
-          }
-          if (globalMyTurtleWins == undefined) {
-            globalMyTurtleWins = 0;
-          }
-          message.reply(`🐢 Name: ${myTurtleName}\n🏁 Races: ${globalMyTurtlePlays}\n🥇 Wins: ${globalMyTurtleWins}`)
+          const globalData = globalDoc.data();
+          console.log(globalData[myTurtleName])
+      
+          const owner = globalData[myTurtleName].owner;
+          const plays = globalData[myTurtleName].plays;
+          const wins = globalData[myTurtleName].wins;
 
-        } catch (e) {
+          message.reply(`🐢 Name: ${myTurtleName}\n ❤️ Owner: ${owner}\n 🏁 Races: ${plays}\n 🥇 Wins: ${wins}`)
+
+        } catch(e) {
           console.log('error... ', e);
           message.reply('Error... ', e);
         }
 
-        break;
+      break;
 
       case 'race':
 
@@ -374,17 +375,15 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           turtlesPositions.sort((a, b) => b.pos - a.pos);
           let winMessage = `🍾 We have a winner! 🎉\n🐢 Turtle Race #${raceNumber}\n🥇 ${turtlesPositions[0].name}\n🥈 ${turtlesPositions[1].name}\n🥉 ${turtlesPositions[2].name}\n😰 ${turtlesPositions[3].name}\n😴 ${turtlesPositions[4].name}`
           if (turtles[turtle_index] >= race_length) {
-            updateDoc(globalRef, {
-              [turtlesPositions[0].name + 'Wins']: increment(1),
-              [turtlesPositions[0].name + 'Plays']: increment(1),
-              [turtlesPositions[1].name + 'Plays']: increment(1),
-              [turtlesPositions[2].name + 'Plays']: increment(1),
-              [turtlesPositions[3].name + 'Plays']: increment(1),
-              [turtlesPositions[4].name + 'Plays']: increment(1),
-            });
+            const updates = {};
+            updates[`${turtlesPositions[0].name}.wins`] = increment(1);
+            updates[`${turtlesPositions[0].name}.plays`] = increment(1);
+            for (let i = 1; i < turtlesPositions.length; i++) {
+              updates[`${turtlesPositions[i].name}.plays`] = increment(1);
+            }
+            updateDoc(globalRef, updates);
           }
-
-          return turtles[turtle_index] >= race_length ? winMessage : null; // if a turtle reaches or surpasses the race_length, it wins
+          return turtles[turtle_index] >= race_length ? winMessage : null;
         }
 
         function raceUpdate() {
@@ -392,7 +391,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
             name: randomNames[index],
             emoji: randomEmojis[index],
             pos: turtle,
-            racePercentage: (turtle / race_length * 100).toFixed(0) // calculate race completion percentage
+            racePercentage: (turtle / race_length * 100).toFixed(0)
           }));
           let turtlesPositionsJSON = JSON.stringify(turtlesPositions.map(turtle => {
             return {
@@ -404,7 +403,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           (async () => {
             try {
               const chatMessages = [
-                { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a International Turtle Racing League sports commentator." },
+                { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a National Turtle Racing League sports commentator." },
                 ...raceMemory,
                 { "role": "user", "content": instructions }
               ];
@@ -436,11 +435,12 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
             }
           })();
         }
+
         if (!turtleRaceNumber) {
           message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #1!`);
         } else {
           message.channel.send(`🐢 It's ${jamaicaDate} inna Kingston, Jamaica an dis a Turtle Race #${turtleRaceNumber + 1}!`);
-        }
+        }        
         raceInProgress = true;
 
         const raceInterval = setInterval(() => {
@@ -453,7 +453,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
             (async () => {
               try {
                 const chatMessages = [
-                  { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a International Turtle Racing League sports commentator." },
+                  { "role": "system", "content": "You are a Jamaican Rastafari pretending to be a National Turtle Racing League sports commentator." },
                   ...raceMemory,
                   { "role": "user", "content": finalMessage }
                 ];
@@ -484,7 +484,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           }
         }, race_interval);
 
-        break;
+      break;
 
       case 'help':
         message.reply(
