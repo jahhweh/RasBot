@@ -55,19 +55,6 @@ const maxRaceMemory = 20;
 const raceMemory = [];
 const prefix = '!';
 
-// setup Kingston, Jamaica date and time
-const jamaicaTimezone = 'America/Jamaica';
-const timezoneOptions = {
-  timeZone: jamaicaTimezone,
-  hour12: true,
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-};
-let jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
-
 // setup discord server settings
 const botChannel = '1162474159687868526';
 
@@ -266,7 +253,19 @@ client.on('messageCreate', async (message) => {
       break;
 
       case 'race':
-
+        // setup Kingston, Jamaica date and time
+        const jamaicaTimezone = 'America/Jamaica';
+        const timezoneOptions = {
+          timeZone: jamaicaTimezone,
+          hour12: true,
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+        let jamaicaDate = new Date().toLocaleString(undefined, timezoneOptions);
+        
         const globalRef = doc(db, "users", "global");
         const globalDoc = await getDoc(globalRef);
         const userRef = doc(db, "users", message.author.id);
