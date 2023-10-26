@@ -53,6 +53,23 @@ let raceInProgress = false;
 const maxRaceMemory = 20;
 const raceMemory = [];
 const prefix = '!';
+const rasbotID = '1144769935323693156';
+const digitaldubsID = '738140276924743740';
+const scamAlertMessageGIF = "https://tenor.com/view/remove-remove-ya-bye-gif-16012529";
+const scamAlertMessages = [
+  "Mi naah lie, dat look fishy.",
+  "Mi nuh too trust dat, yuh zimi?",
+  "Mi have mi doubts 'bout dat one, yuh zeen?",
+  "Dat sound kinda shady to mi, bredren.",
+  "Mi smell a rat inna dat whole ting.",
+  "Mi cyan trust dat, yuh feel me?",
+  "Dem move kinda sly, mi nuh like it.",
+  "Dat soun' like a one big con, seen?",
+  "Mi have mi reservations 'bout dat, mi breda.",
+  "Dat look too good fi be true, star.",
+  "Mi naah put mi trust inna dat, brejin.",
+  "Mi sense a set-up inna dat whole vibe."
+];
 
 // setup discord server settings
 const botChannel = '1162474159687868526';
@@ -64,6 +81,42 @@ client.once('ready', async () => {
 
 // on message...
 client.on('messageCreate', async (message) => {
+
+  // delete potential scam post
+  if (message.author.id !== rasbotID || message.author.id !== digitaldubsID) {
+    let prompt = message.content;
+    try {
+      const chatMessages = [
+        { "role": "system", "content": "You are a chatroom moderator looking for suspicious phishing posts and scam posts. Review the post delimited by ### and reply 'Yes' if the post is likely to be a phishing scam or reply 'No' if the post is most likely not a phishing scam" },
+        ...botMemory,
+        { "role": "user", "content": `### ${prompt} ###` }
+      ];
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: chatMessages,
+        temperature: 0.5,
+        max_tokens: 500,
+        presence_penalty: 0.0
+      });
+      const response = completion.choices[0].message.content;
+      if (response === 'Yes') {
+        message.delete();
+        message.channel.send(`${scamAlertMessageGIF}`);
+        let scamAlert = Math.floor(Math.random() * scamAlertMessages.length);
+        message.channel.send(scamAlertMessages[scamAlert]);
+      }
+
+      if (botMemory.length >= maxMemory * 2) {
+        botMemory.splice(0, 2);
+      }
+      botMemory.push({ "role": "user", "content": prompt });
+      botMemory.push({ "role": "assistant", "content": response });
+    } catch (e) {
+      console.log('error: ', e);
+      message.reply('error...');
+      message.reply(e);
+    }
+  }
 
   // if message is not in bot channel, ignore it
   if (!message.channel.id == botChannel) return;
@@ -165,11 +218,11 @@ client.on('messageCreate', async (message) => {
               message.reply(e);
             }
           })();
-        } catch(e) {
+        } catch (e) {
           console.log('Error... ', e);
           message.reply(`Error... ${e}`);
         }
-       
+
         break;
 
       case 'paint':
