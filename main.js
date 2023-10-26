@@ -101,9 +101,8 @@ client.on('messageCreate', async (message) => {
       const response = completion.choices[0].message.content;
       if (response === 'Yes') {
         message.delete();
-        message.channel.send(`${scamAlertMessageGIF}`);
         let scamAlert = Math.floor(Math.random() * scamAlertMessages.length);
-        message.channel.send(scamAlertMessages[scamAlert]);
+        message.channel.send((`${scamAlertMessages[scamAlert]}`));
       }
 
       if (botMemory.length >= maxMemory * 2) {
