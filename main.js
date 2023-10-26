@@ -113,8 +113,6 @@ client.on('messageCreate', async (message) => {
       botMemory.push({ "role": "assistant", "content": response });
     } catch (e) {
       console.log('error: ', e);
-      message.reply('error...');
-      message.reply(e);
     }
   }
 
