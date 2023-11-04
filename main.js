@@ -119,10 +119,12 @@ client.on('messageCreate', async (message) => {
   }
 
   // if message is not in bot channel, ignore it
-  if (!message.channel.id == botChannel) return;
+  else if (!message.channel.id == botChannel) {
+    return;
+  }
 
   // reply to a message if bot is being replied to
-  if (message.reference && message.reference.messageId) {
+  else if (message.reference && message.reference.messageId) {
     message.channel.messages.fetch(message.reference.messageId)
       .then(async msg => {
         if (msg.author.id === client.user.id) {
