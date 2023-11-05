@@ -57,6 +57,8 @@ const prefix = '!';
 const rasbotID = '1144769935323693156';
 const digitaldubsID = '738140276924743740';
 const jahhwehID = '388069999211970562';
+const yaakID = '664258437164695563';
+const chmonstroID = '1090801133980745838';
 const announcementsChannelID = '823329797778046989';
 const scamAlertMessageGIF = "https://tenor.com/view/remove-remove-ya-bye-gif-16012529";
 const scamAlertMessages = [
@@ -76,6 +78,7 @@ const scamAlertMessages = [
 
 // setup discord server settings
 const botChannel = '1162474159687868526';
+const crchatChannel = '823329798221856808';
 
 // start chatbot
 client.once('ready', async () => {
@@ -84,14 +87,20 @@ client.once('ready', async () => {
 
 // on message...
 client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
 
   // delete potential scam post
-  if (!message.author.id == jahhwehID || !message.author.id == rasbotID || !message.author.id == digitaldubsID) {
+  if (
+    message.author.id != jahhwehID ||
+    message.author.id != rasbotID ||
+    message.author.id != digitaldubsID ||
+    message.author.id != yaakID ||
+    message.author.id != chmonstroID
+  ) {
     let prompt = message.content;
     try {
       const chatMessages = [
         { "role": "system", "content": "You are a chatroom moderator looking for suspicious phishing posts and scam posts. Review the post delimited by ### and reply 'Yes' if the post is likely to be a phishing scam or reply 'No' if the post is most likely not a phishing scam" },
-        ...botMemory,
         { "role": "user", "content": `### ${prompt} ###` }
       ];
       const completion = await openai.chat.completions.create({
@@ -108,11 +117,6 @@ client.on('messageCreate', async (message) => {
         message.channel.send((`${scamAlertMessages[scamAlert]}`));
       }
 
-      if (botMemory.length >= maxMemory * 2) {
-        botMemory.splice(0, 2);
-      }
-      botMemory.push({ "role": "user", "content": prompt });
-      botMemory.push({ "role": "assistant", "content": response });
     } catch (e) {
       console.log('error: ', e);
     }
