@@ -15,7 +15,6 @@ import {
   arrayUnion
 } from 'firebase/firestore';
 import Moralis from 'moralis';
-import { channel } from 'diagnostics_channel';
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -59,6 +58,12 @@ const digitaldubsID = '738140276924743740';
 const jahhwehID = '388069999211970562';
 const yaakID = '664258437164695563';
 const chmonstroID = '1090801133980745838';
+const primaID = '875789333527941151';
+const osvalID = '924843147622744065';
+const dasezID = '874400586718662667';
+const rasjammyID = '597950037355659294';
+const garhiID = '878721485198491698';
+
 const announcementsChannelID = '823329797778046989';
 const scamAlertMessageGIF = "https://tenor.com/view/remove-remove-ya-bye-gif-16012529";
 const scamAlertMessages = [
@@ -95,7 +100,12 @@ client.on('messageCreate', async (message) => {
     message.author.id != rasbotID ||
     message.author.id != digitaldubsID ||
     message.author.id != yaakID ||
-    message.author.id != chmonstroID
+    message.author.id != chmonstroID ||
+    message.author.id != primaID ||
+    message.author.id != osvalID ||
+    message.author.id != garhiID ||
+    message.author.id != dasezID || 
+    message.author.id != rasjammyID
   ) {
     let prompt = message.content;
     try {
