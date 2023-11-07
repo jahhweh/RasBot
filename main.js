@@ -63,6 +63,7 @@ const osvalID = '924843147622744065';
 const dasezID = '874400586718662667';
 const rasjammyID = '597950037355659294';
 const garhiID = '878721485198491698';
+const jahhwehbotID = '943609110497226792';
 
 const announcementsChannelID = '823329797778046989';
 const scamAlertMessageGIF = "https://tenor.com/view/remove-remove-ya-bye-gif-16012529";
@@ -105,7 +106,7 @@ client.on('messageCreate', async (message) => {
     message.author.id != osvalID ||
     message.author.id != garhiID ||
     message.author.id != dasezID || 
-    message.author.id != rasjammyID
+    message.author.id != rasjammyID 
   ) {
     let prompt = message.content;
     try {
@@ -259,9 +260,10 @@ client.on('messageCreate', async (message) => {
             message.reply(`Painting ${message.content.slice(message.content.indexOf('!paint') + 7)}...`);
             try {
               const response = await openai.images.generate({
+                model: "dall-e-3",
                 prompt: `A painting of ${message.content.slice(message.content.indexOf('!paint') + 7)}`,
                 n: 1,
-                size: "256x256",
+                size: "1024x1024",
               });
               message.channel.send(response.data[0].url);
             } catch (e) {
