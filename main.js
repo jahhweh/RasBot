@@ -308,7 +308,8 @@ client.on('messageCreate', async (message) => {
         }
         break;
 
-      case 'myTurtle' || 'rank':
+      case 'myTurtle':
+      case 'rank':
         try {
           const globalRef = doc(db, "users", "global");
           const globalDoc = await getDoc(globalRef);
