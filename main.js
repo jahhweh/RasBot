@@ -53,19 +53,7 @@ let raceInProgress = false;
 const maxRaceMemory = 20;
 const raceMemory = [];
 const prefix = '!';
-const rasbotID = '1144769935323693156';
-const digitaldubsID = '738140276924743740';
-const jahhwehID = '388069999211970562';
-const yaakID = '664258437164695563';
-const chmonstroID = '1090801133980745838';
-const primaID = '875789333527941151';
-const osvalID = '924843147622744065';
-const dasezID = '874400586718662667';
-const rasjammyID = '597950037355659294';
-const garhiID = '878721485198491698';
-const jahhwehbotID = '943609110497226792';
-
-const announcementsChannelID = '823329797778046989';
+const regularMembers = ['Server Booster', 'mods', 'DEV', 'General Rasta', 'Brigadier Rasta', 'Major Rasta', 'DAO Rasta', 'CryptoRasta Owner'];
 const scamAlertMessageGIF = "https://tenor.com/view/remove-remove-ya-bye-gif-16012529";
 const scamAlertMessages = [
   "Mi naah lie, dat look fishy.",
@@ -95,19 +83,11 @@ client.once('ready', async () => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
+  const memberRoles = message.member.roles.cache;
+  const realCRMember = memberRoles.some(role => regularMembers.includes(role.name));
+
   // delete potential scam post
-  if (
-    message.author.id != jahhwehID ||
-    message.author.id != rasbotID ||
-    message.author.id != digitaldubsID ||
-    message.author.id != yaakID ||
-    message.author.id != chmonstroID ||
-    message.author.id != primaID ||
-    message.author.id != osvalID ||
-    message.author.id != garhiID ||
-    message.author.id != dasezID || 
-    message.author.id != rasjammyID 
-  ) {
+  if (!realCRMember) {
     let prompt = message.content;
     try {
       const chatMessages = [
@@ -125,9 +105,11 @@ client.on('messageCreate', async (message) => {
       if (response === 'Yes') {
         message.delete();
         let scamAlert = Math.floor(Math.random() * scamAlertMessages.length);
-        message.channel.send((`${scamAlertMessages[scamAlert]}`));
+        const botReply = await message.channel.send((`${scamAlertMessages[scamAlert]}`));
+        setTimeout(() => {
+          botReply.delete().catch(console.error);
+      }, 69000);
       }
-
     } catch (e) {
       console.log('error: ', e);
     }
@@ -326,7 +308,7 @@ client.on('messageCreate', async (message) => {
         }
         break;
 
-      case 'myTurtle':
+      case 'myTurtle' || 'rank':
         try {
           const globalRef = doc(db, "users", "global");
           const globalDoc = await getDoc(globalRef);
@@ -605,7 +587,7 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
           "📊 `!myTurtle` Check your turtle stats\n" +
           "💬 `!chat` Start a chat with RasBot\n" +
           "🎨 `!paint **prompt**` Request an image from DALL·E"
-        )
+        );
         break;
 
       default:
