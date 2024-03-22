@@ -1,7 +1,7 @@
 {
 	"name": "rasbot",
 	"author": "jahhweh",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"license": "ISC",
 	"description": "gpt3, openai, discord",
 	"main": "main.js",
@@ -13,8 +13,6 @@
 	"dependencies": {
 		"discord.js": "^13.6.0",
 		"dotenv": "^16.3.1",
-		"firebase": "^10.5.0",
-		"moralis": "^2.23.1",
 		"node": "^17.7.2",
 		"openai": "^4.6.0"
 	}
