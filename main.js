@@ -15,7 +15,7 @@ const client = new Client({
 });
 
 const openai = new OpenAI({
-  apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // setup chatbot variables
@@ -571,4 +571,4 @@ ${positionsName[4]} ${turtlesPositions[4].emoji} 🏁 ${displayPositionString4}
 
 });
 
-client.login(process.env.NEXT_PUBLIC_DISCORD_BOT_TOKEN);
+client.login(process.env.DISCORD_BOT_TOKEN);
